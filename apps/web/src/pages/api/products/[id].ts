@@ -25,14 +25,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     return res.status(200).json(products[idx]);
   }
-  if (req.method === 'PUT') {
-    const { name, image, prices, inStock } = req.body;
-    products[idx] = { ...products[idx], name, image, prices, inStock };
-    return res.status(200).json(products[idx]);
-  }
-  if (req.method === 'DELETE') {
-    const deleted = products.splice(idx, 1);
-    return res.status(200).json(deleted[0]);
+  if (req.method === 'PUT' || req.method === 'DELETE') {
+    if (req.headers['authorization'] !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (req.method === 'PUT') {
+      const { name, image, prices, inStock } = req.body;
+      products[idx] = { ...products[idx], name, image, prices, inStock };
+      return res.status(200).json(products[idx]);
+    }
+    if (req.method === 'DELETE') {
+      const deleted = products.splice(idx, 1);
+      return res.status(200).json(deleted[0]);
+    }
   }
   res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
   res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -22,6 +22,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json(products);
   }
   if (req.method === 'POST') {
+    if (req.headers['authorization'] !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const { name, image, prices, inStock } = req.body;
     const newProduct = {
       id: name.toLowerCase().replace(/\s+/g, '-'),

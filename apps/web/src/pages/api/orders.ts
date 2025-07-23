@@ -20,6 +20,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json(orders);
   }
   if (req.method === 'POST') {
+    if (req.headers['authorization'] !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const { items, total, deliveryLocation, deliveryFee, paymentMethod } = req.body;
     const newOrder = {
       id: `order${orders.length + 1}`,
