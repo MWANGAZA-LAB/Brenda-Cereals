@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: brenda_cereals
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - brenda-network
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - brenda-network
+
+  # Web Application
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/brenda_cereals
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - brenda-network
+
+  # Database migration service
+  migrate:
+    build: .
+    command: npx prisma migrate deploy
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/brenda_cereals
+    depends_on:
+      - postgres
+    networks:
+      - brenda-network
+
+volumes:
+  postgres_data:
+
+networks:
+  brenda-network:
+    driver: bridge

@@ -1,3 +1,4 @@
+'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
 import { useTranslation } from "next-i18next";
@@ -60,8 +61,8 @@ export default function Home() {
         <Image
           src="/hero-farmer.jpg"
           alt="Farmer with cereals"
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           className="z-0"
         />
         <div className="absolute inset-0 bg-black bg-opacity-30 z-10 flex flex-col items-center justify-center text-center">

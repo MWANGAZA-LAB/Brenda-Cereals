@@ -1,6 +1,6 @@
 'use client';
 import Image from "next/image";
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 
 const sampleProducts = [
@@ -31,9 +31,10 @@ const weights = ["1kg", "5kg", "50kg"];
 
 type Prices = { [key: string]: number; '1kg': number; '5kg': number; '50kg': number };
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const product = sampleProducts.find((p) => p.id === params.id);
+  const product = sampleProducts.find((p) => p.id === id);
   const [selectedWeight, setSelectedWeight] = useState("1kg");
   const [imgIdx, setImgIdx] = useState(0);
 
@@ -48,8 +49,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <Image
           src={product.images[imgIdx]}
           alt={product.name}
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           className="rounded"
         />
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2">

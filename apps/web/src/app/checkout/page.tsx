@@ -1,6 +1,7 @@
 'use client';
 import { useCart } from '../../context/CartContext';
 import { useState } from 'react';
+import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 
 const locations = [
   { name: "Nairobi", delivery: 300 },
@@ -15,9 +16,55 @@ export default function CheckoutPage() {
   const [location, setLocation] = useState(locations[0]);
   const [payment, setPayment] = useState('mpesa');
   const [confirmed, setConfirmed] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderCreated, setOrderCreated] = useState(false);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.prices[item.weight] || 0), 0);
   const total = subtotal + location.delivery;
+
+  const createOrder = async () => {
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: cart.map(item => ({
+            productName: item.name,
+            quantity: 1,
+            price: item.prices[item.weight],
+            weight: item.weight
+          })),
+          subtotal,
+          deliveryFee: location.delivery,
+          total,
+          deliveryLocation: location.name,
+          deliveryAddress: {
+            city: location.name,
+            country: 'Kenya'
+          }
+        }),
+      })
+
+      if (response.ok) {
+        const order = await response.json()
+        setOrderId(order.id)
+        setOrderCreated(true)
+        return order
+      } else {
+        throw new Error('Failed to create order')
+      }
+    } catch (error) {
+      console.error('Order creation error:', error)
+      alert('Failed to create order. Please try again.')
+    }
+  }
+
+  const handlePaymentInitiated = (paymentData: any) => {
+    console.log('Payment initiated:', paymentData)
+    // You can add payment status polling here
+  }
 
   function handlePay() {
     setConfirmed(true);
@@ -70,32 +117,32 @@ export default function CheckoutPage() {
           <span className="font-semibold">Ksh {location.delivery}</span>
         </div>
       </div>
-      {/* Payment Method */}
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">Payment Method</label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2">
-            <input type="radio" name="payment" value="mpesa" checked={payment === 'mpesa'} onChange={() => setPayment('mpesa')} />
-            <span>M-Pesa</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="radio" name="payment" value="bitcoin" checked={payment === 'bitcoin'} onChange={() => setPayment('bitcoin')} />
-            <span>Bitcoin</span>
-          </label>
-        </div>
-      </div>
-      {/* Total and Pay Button */}
-      <div className="flex justify-between font-bold text-lg mb-4">
+      {/* Total */}
+      <div className="flex justify-between font-bold text-lg mb-6">
         <span>Total:</span>
         <span className="text-green-700">Ksh {total}</span>
       </div>
-      <button
-        className="w-full py-3 rounded bg-green-600 text-white font-semibold text-lg disabled:bg-gray-300"
-        onClick={handlePay}
-        disabled={cart.length === 0}
-      >
-        Pay Now
-      </button>
+
+      {/* Payment Section */}
+      {!orderCreated ? (
+        <button
+          className="w-full py-3 rounded bg-green-600 text-white font-semibold text-lg disabled:bg-gray-300"
+          onClick={createOrder}
+          disabled={cart.length === 0}
+        >
+          Create Order & Proceed to Payment
+        </button>
+      ) : orderId ? (
+        <PaymentMethodSelector 
+          total={total}
+          orderId={orderId}
+          onPaymentInitiated={handlePaymentInitiated}
+        />
+      ) : (
+        <div className="text-center py-4">
+          <p>Creating your order...</p>
+        </div>
+      )}
     </div>
   );
 } 

@@ -1,0 +1,39 @@
+{
+  "name": "brenda-cereals",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "cd apps/web && npm run dev",
+    "build": "npm run build:packages && cd apps/web && npm run build",
+    "build:packages": "cd packages/types && npm run build && cd ../ui && npm run build && cd ../utils && npm run build",
+    "start": "cd apps/web && npm run start",
+    "lint": "cd apps/web && npm run lint",
+    "test": "cd apps/web && npm run test",
+    "test:coverage": "cd apps/web && npm run test:coverage",
+    "install-all": "npm install && cd apps/web && npm install",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
+    "reset": "npm run clean && npm install",
+    "optimize": "node optimize-production.js",
+    "docker:build": "docker build -t brenda-cereals .",
+    "docker:run": "docker run -p 3000:3000 brenda-cereals",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:prod": "docker-compose up -d",
+    "health": "curl http://localhost:3000/api/health",
+    "metrics": "curl http://localhost:3000/api/metrics"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "prisma": "^5.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0"
+  }
+}

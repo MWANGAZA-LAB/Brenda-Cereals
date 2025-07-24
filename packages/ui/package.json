@@ -1,0 +1,24 @@
+{
+  "name": "@brenda-cereals/ui",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.tsx",
+  "types": "index.tsx",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  }
+}

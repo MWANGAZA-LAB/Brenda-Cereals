@@ -24,8 +24,8 @@ export default function ProductCard({ product, onAddToCart }: Props) {
         <Image
           src={product.image}
           alt={product.name}
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           className="rounded"
         />
       </div>
