@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { mpesaService } from '@/lib/mpesa'
-import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,68 +12,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get order details
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        user: true,
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
-    })
-
-    if (!order) {
-      return NextResponse.json(
-        { message: 'Order not found' },
-        { status: 404 }
-      )
-    }
-
-    if (order.status !== 'PENDING') {
-      return NextResponse.json(
-        { message: 'Order is not pending payment' },
-        { status: 400 }
-      )
-    }
-
-    // Initiate STK push
-    const callbackUrl = `${process.env.NEXTAUTH_URL}/api/payments/mpesa/callback`
-    const accountReference = `ORDER-${orderId}`
-    const transactionDesc = `Payment for Brenda Cereals Order ${orderId}`
-
-    const stkResponse = await mpesaService.initiateSTKPush(
-      phoneNumber,
-      Math.round(amount),
-      accountReference,
-      transactionDesc,
-      callbackUrl
-    )
-
-    // Store payment request details
-    await prisma.payment.create({
-      data: {
-        orderId,
-        method: 'MPESA',
-        amount: amount,
-        status: 'PENDING',
-        externalId: stkResponse.CheckoutRequestID,
-        metadata: {
-          merchantRequestId: stkResponse.MerchantRequestID,
-          checkoutRequestId: stkResponse.CheckoutRequestID,
-          phoneNumber: phoneNumber
-        }
-      }
-    })
-
-    return NextResponse.json({
+    // Mock response for development
+    const mockResponse = {
       success: true,
-      message: stkResponse.CustomerMessage,
-      checkoutRequestId: stkResponse.CheckoutRequestID,
-      merchantRequestId: stkResponse.MerchantRequestID
-    })
+      message: 'Please check your phone and enter M-Pesa PIN to complete payment',
+      checkoutRequestId: `mock-${Date.now()}`,
+      merchantRequestId: `mock-merchant-${Date.now()}`
+    }
+
+    return NextResponse.json(mockResponse)
 
   } catch (error) {
     console.error('MPesa payment initiation error:', error)

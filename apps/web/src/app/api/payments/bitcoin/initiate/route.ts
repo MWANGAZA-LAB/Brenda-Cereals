@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { bitcoinService } from '@/lib/bitcoin'
-import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,105 +19,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get order details
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        user: true,
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
-    })
-
-    if (!order) {
-      return NextResponse.json(
-        { message: 'Order not found' },
-        { status: 404 }
-      )
+    // Mock response for development
+    const mockResponse: any = {
+      success: true,
+      paymentMethod: paymentMethod,
+      amountKES: 1500, // Mock amount
+      amountSats: 150000, // Mock satoshis
+      paymentId: `mock-payment-${Date.now()}`,
+      message: `Bitcoin ${paymentMethod} payment initiated successfully`
     }
-
-    if (order.status !== 'PENDING') {
-      return NextResponse.json(
-        { message: 'Order is not pending payment' },
-        { status: 400 }
-      )
-    }
-
-    const amountKES = order.total
-    const description = `Brenda Cereals Order ${orderId}`
 
     if (paymentMethod === 'lightning') {
-      // Create Lightning invoice
-      const amountSats = await bitcoinService.convertToSatoshis(amountKES, 'KES')
-      const invoice = await bitcoinService.createLightningInvoice(
-        amountSats,
-        description,
-        3600 // 1 hour expiry
-      )
-
-      // Store payment request
-      const payment = await prisma.payment.create({
-        data: {
-          orderId,
-          method: 'LIGHTNING',
-          amount: amountKES,
-          status: 'PENDING',
-          externalId: invoice.payment_hash,
-          metadata: {
-            paymentRequest: invoice.payment_request,
-            amountSats: amountSats,
-            expiresAt: invoice.expires_at
-          }
-        }
-      })
-
-      return NextResponse.json({
-        success: true,
-        paymentMethod: 'lightning',
-        paymentRequest: invoice.payment_request,
-        amountSats: amountSats,
-        amountKES: amountKES,
-        expiresAt: invoice.expires_at,
-        paymentId: payment.id
-      })
-
+      mockResponse.paymentRequest = 'lnbc150000n1p...' // Mock Lightning invoice
+      mockResponse.expiresAt = new Date(Date.now() + 3600000).toISOString() // 1 hour from now
     } else {
-      // Create Bitcoin on-chain payment
-      const amountSats = await bitcoinService.convertToSatoshis(amountKES, 'KES')
-      const paymentURI = bitcoinService.generateBitcoinPaymentURI(
-        amountSats,
-        'Brenda Cereals',
-        description
-      )
-
-      // Store payment request
-      const payment = await prisma.payment.create({
-        data: {
-          orderId,
-          method: 'BITCOIN',
-          amount: amountKES,
-          status: 'PENDING',
-          metadata: {
-            paymentURI: paymentURI,
-            amountSats: amountSats,
-            walletAddress: process.env.BITCOIN_WALLET_ADDRESS
-          }
-        }
-      })
-
-      return NextResponse.json({
-        success: true,
-        paymentMethod: 'bitcoin',
-        paymentURI: paymentURI,
-        walletAddress: process.env.BITCOIN_WALLET_ADDRESS,
-        amountSats: amountSats,
-        amountKES: amountKES,
-        paymentId: payment.id
-      })
+      mockResponse.paymentURI = 'bitcoin:bc1q...' // Mock Bitcoin address
+      mockResponse.walletAddress = 'bc1q...' // Mock wallet address
     }
+
+    return NextResponse.json(mockResponse)
 
   } catch (error) {
     console.error('Bitcoin payment initiation error:', error)

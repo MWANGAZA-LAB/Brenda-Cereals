@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hash } from 'bcryptjs'
-import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,38 +12,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    })
-
-    if (existingUser) {
-      return NextResponse.json(
-        { message: 'User with this email already exists' },
-        { status: 400 }
-      )
+    // Mock user creation for development
+    const mockUser = {
+      id: `user-${Date.now()}`,
+      name,
+      email,
+      phone: phone || null,
+      createdAt: new Date().toISOString()
     }
-
-    // Hash password
-    const hashedPassword = await hash(password, 12)
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        phone,
-        // Note: In a real implementation, you'd store the hashed password
-        // hashedPassword,
-      }
-    })
-
-    // Remove sensitive data from response
-    const { ...userData } = user
 
     return NextResponse.json({
       message: 'User created successfully',
-      user: userData
+      user: mockUser
     })
   } catch (error) {
     console.error('Signup error:', error)
