@@ -10,22 +10,66 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+// NextAuth.js Session Management
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 // User Management
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  phone     String?
-  avatar    String?
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  phone         String?
+  password      String?   // For email/password auth
+  avatar        String?
+  role          Role      @default(CUSTOMER)
+  isVerified    Boolean   @default(false)
+  emailVerified DateTime?
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  // Relations
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Business relations
   orders    Order[]
   cart      CartItem[]
   addresses Address[]
@@ -171,9 +215,36 @@ model OrderItem {
 
 // Payment Management
 model Payment {
-  id          String    @id @default(uuid())
-  orderId     String
-  method      PaymentMethod
+  id            String        @id @default(uuid())
+  orderId       String
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amount        Int           // Amount in cents
+  currency      String        @default("KES")
+  
+  // M-Pesa specific fields
+  mpesaCode     String?       // M-Pesa transaction code
+  mpesaPhone    String?       // Phone number used for M-Pesa
+  paybillNumber String?       // Our paybill number
+  accountRef    String?       // Account reference for paybill
+  
+  // Bitcoin specific fields
+  bitcoinAddress String?      // Generated bitcoin address
+  bitcoinAmount  String?      // Amount in BTC
+  bitcoinTxHash  String?      // Transaction hash when paid
+  qrCodeData     String?      // QR code data for payment
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  confirmedAt   DateTime?
+  expiresAt     DateTime?
+  
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@map("payments")
+}
   amount      Float
   status      PaymentStatus @default(PENDING)
   externalId  String?   // MPesa CheckoutRequestID, Bitcoin tx hash, etc.
@@ -184,6 +255,20 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
   @@map("payments")
+}
+
+// Payment Webhook Tracking
+model PaymentWebhook {
+  id          String    @id @default(uuid())
+  paymentId   String?
+  provider    String    // "mpesa" or "bitcoin"
+  eventType   String    // "payment_received", "payment_confirmed", etc.
+  payload     Json      // Full webhook payload
+  processed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+  
+  @@map("payment_webhooks")
 }
 
 // Enums

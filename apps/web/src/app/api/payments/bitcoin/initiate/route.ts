@@ -1,49 +1,127 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { bitcoinService } from '@/lib/bitcoin';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { orderId, paymentMethod } = await request.json()
-
-    // Validate required fields
-    if (!orderId || !paymentMethod) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
       return NextResponse.json(
-        { message: 'Order ID and payment method are required' },
-        { status: 400 }
-      )
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
-    if (!['bitcoin', 'lightning'].includes(paymentMethod)) {
+    const { orderId, amount } = await req.json();
+
+    if (!orderId || !amount) {
       return NextResponse.json(
-        { message: 'Invalid payment method. Use "bitcoin" or "lightning"' },
+        { error: 'Missing required fields' },
         { status: 400 }
-      )
+      );
     }
 
-    // Mock response for development
-    const mockResponse: any = {
+    // Find the user and order
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        userId: user.id,
+        status: 'PENDING'
+      }
+    });
+
+    if (!order) {
+      return NextResponse.json(
+        { error: 'Order not found or already processed' },
+        { status: 404 }
+      );
+    }
+
+    // Verify amount matches order total
+    if (Math.abs(amount - order.total) > 0.01) {
+      return NextResponse.json(
+        { error: 'Amount mismatch' },
+        { status: 400 }
+      );
+    }
+
+    // Create Bitcoin payment
+    const bitcoinPayment = await bitcoinService.createPayment({
+      amount: order.total,
+      orderId: order.id,
+    });
+
+    // Create payment record
+    const payment = await prisma.payment.create({
+      data: {
+        orderId,
+        method: 'BITCOIN',
+        status: 'PENDING',
+        amount: order.total,
+        bitcoinAddress: bitcoinPayment.address,
+        bitcoinAmount: parseFloat(bitcoinPayment.amount),
+      },
+    });
+
+    // Start monitoring payment
+    bitcoinService.monitorPayment(
+      bitcoinPayment.address,
+      parseFloat(bitcoinPayment.amount),
+      async (result) => {
+        if (result.success) {
+          // Update payment status
+          await prisma.payment.update({
+            where: { id: payment.id },
+            data: {
+              status: 'COMPLETED',
+              confirmedAt: new Date(),
+              bitcoinTxHash: result.txid,
+            },
+          });
+
+          // Update order status
+          await prisma.order.update({
+            where: { id: orderId },
+            data: {
+              status: 'CONFIRMED',
+              paymentStatus: 'PAID',
+              paidAt: new Date(),
+              paymentId: result.txid,
+            },
+          });
+
+          console.log(`Bitcoin payment confirmed for order ${orderId}`);
+        }
+      }
+    );
+
+    return NextResponse.json({
       success: true,
-      paymentMethod: paymentMethod,
-      amountKES: 1500, // Mock amount
-      amountSats: 150000, // Mock satoshis
-      paymentId: `mock-payment-${Date.now()}`,
-      message: `Bitcoin ${paymentMethod} payment initiated successfully`
-    }
-
-    if (paymentMethod === 'lightning') {
-      mockResponse.paymentRequest = 'lnbc150000n1p...' // Mock Lightning invoice
-      mockResponse.expiresAt = new Date(Date.now() + 3600000).toISOString() // 1 hour from now
-    } else {
-      mockResponse.paymentURI = 'bitcoin:bc1q...' // Mock Bitcoin address
-      mockResponse.walletAddress = 'bc1q...' // Mock wallet address
-    }
-
-    return NextResponse.json(mockResponse)
+      address: bitcoinPayment.address,
+      amount: parseFloat(bitcoinPayment.amount),
+      qrCode: bitcoinPayment.qrCode,
+      expiresAt: bitcoinPayment.expiresAt,
+    });
 
   } catch (error) {
-    console.error('Bitcoin payment initiation error:', error)
+    console.error('Bitcoin payment initiation error:', error);
     return NextResponse.json(
-      { message: 'Failed to initiate Bitcoin payment' },
+      { error: 'Failed to initiate payment' },
       { status: 500 }
-    )
+    );
   }
 }

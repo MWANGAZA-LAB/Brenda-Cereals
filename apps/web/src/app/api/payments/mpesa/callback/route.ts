@@ -1,32 +1,86 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { mpesaService } from '@/lib/mpesa';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const mpesaCallback = await request.json()
+    const callbackData = await req.json();
     
-    console.log('MPesa callback received:', JSON.stringify(mpesaCallback, null, 2))
+    console.log('M-Pesa Callback received:', JSON.stringify(callbackData, null, 2));
 
-    const stkCallback = mpesaCallback.Body?.stkCallback
-    if (!stkCallback) {
-      return NextResponse.json({ message: 'Invalid callback format' }, { status: 400 })
+    // Log webhook for audit
+    await prisma.paymentWebhook.create({
+      data: {
+        provider: 'mpesa',
+        eventType: 'payment_callback',
+        payload: callbackData,
+      },
+    });
+
+    // Process the callback
+    const result = mpesaService.processCallback(callbackData);
+
+    if (result.isSuccessful && result.transactionId) {
+      // Find the payment record
+      const payment = await prisma.payment.findFirst({
+        where: {
+          mpesaCode: result.transactionId,
+          status: 'PENDING',
+        },
+        include: { order: true },
+      });
+
+      if (payment) {
+        // Update payment status
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'COMPLETED',
+            confirmedAt: new Date(),
+            metadata: {
+              mpesaReceiptNumber: result.mpesaReceiptNumber,
+              amount: result.amount,
+              phone: result.phone,
+            },
+          },
+        });
+
+        // Update order status
+        await prisma.order.update({
+          where: { id: payment.orderId },
+          data: {
+            paymentStatus: 'PAID',
+            paidAt: new Date(),
+            paymentId: result.mpesaReceiptNumber,
+          },
+        });
+
+        console.log(`Payment confirmed for order ${payment.orderId}`);
+      }
     }
 
-    const { MerchantRequestID, CheckoutRequestID, ResultCode, ResultDesc } = stkCallback
+    // Update webhook as processed
+    await prisma.paymentWebhook.updateMany({
+      where: {
+        provider: 'mpesa',
+        processed: false,
+        createdAt: {
+          gte: new Date(Date.now() - 5 * 60 * 1000), // Last 5 minutes
+        },
+      },
+      data: {
+        processed: true,
+        processedAt: new Date(),
+      },
+    });
 
-    // Mock processing for development
-    if (ResultCode === 0) {
-      console.log(`Payment completed successfully for checkout request: ${CheckoutRequestID}`)
-    } else {
-      console.log(`Payment failed for checkout request ${CheckoutRequestID}: ${ResultDesc}`)
-    }
-
-    return NextResponse.json({ message: 'Callback processed successfully' })
+    return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('MPesa callback processing error:', error)
+    console.error('M-Pesa callback processing error:', error);
     return NextResponse.json(
-      { message: 'Failed to process callback' },
+      { error: 'Callback processing failed' },
       { status: 500 }
-    )
+    );
   }
 }

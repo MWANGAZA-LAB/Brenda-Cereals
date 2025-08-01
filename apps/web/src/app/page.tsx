@@ -1,13 +1,11 @@
 'use client';
 import Image from "next/image";
-import styles from "./page.module.css";
-import { useTranslation } from "next-i18next";
 import ProductGridClient from "../components/ProductGridClient";
 import LocationEstimator from "../components/LocationEstimator";
 import MobileNavbar from "../components/MobileNavbar";
-import { useState } from "react";
-import type { Product } from "../components/ProductCard";
-import type { CartItem } from "../components/ProductGridClient";
+import StickyCartPanel from "../components/StickyCartPanel";
+import Header from "../components/Header";
+import { CartProvider, useCart } from "../context/CartContext";
 
 const categories = [
   { name: "Maize", icon: "/maize.png" },
@@ -17,45 +15,18 @@ const categories = [
   { name: "Sorghum", icon: "/sorghum.png" },
 ];
 
-const sampleProducts = [
-  {
-    id: "maize",
-    name: "Maize (White)",
-    image: "/maize-product.jpg",
-    prices: { "1kg": 120, "5kg": 550, "50kg": 5000 },
-    inStock: true,
-  },
-  {
-    id: "beans",
-    name: "Beans (Rosecoco)",
-    image: "/beans-product.jpg",
-    prices: { "1kg": 180, "5kg": 850, "50kg": 8000 },
-    inStock: true,
-  },
-  {
-    id: "rice",
-    name: "Rice (Pishori)",
-    image: "/rice-product.jpg",
-    prices: { "1kg": 250, "5kg": 1200, "50kg": 11000 },
-    inStock: false,
-  },
-  // Add more products as needed
-];
-
-export default function Home() {
-  const { t } = useTranslation('common');
-  const [cart, setCart] = useState<CartItem[]>([]);
-
-  function handleAddToCart(product: Product, weight: string) {
-    setCart((prev: CartItem[]) => [...prev, { ...product, weight }]);
-  }
+function HomeContent() {
+  const { cart } = useCart();
 
   function handleLangSwitch() {
     alert('Language switch coming soon!');
   }
 
   return (
-    <div className="min-h-screen bg-white pb-16">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Navigation */}
+      <Header />
+      
       {/* Hero Section */}
       <section className="relative w-full h-64 md:h-96 flex items-center justify-center bg-gray-100 overflow-hidden">
         <Image
@@ -70,7 +41,7 @@ export default function Home() {
             Brenda Cereals
           </h1>
           <p className="text-lg md:text-2xl text-white mb-4">
-            {t('greeting')}
+            Your trusted source for wholesome Kenyan grains
           </p>
           <div className="flex gap-2 justify-center mb-2">
             <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Fresh Stock</span>
@@ -99,12 +70,21 @@ export default function Home() {
       <LocationEstimator />
 
       {/* Product Grid */}
-      <ProductGridClient cart={cart} onAddToCart={handleAddToCart} />
+      <ProductGridClient />
 
       {/* Mobile Navbar */}
-      <MobileNavbar cartCount={cart.length} onLangSwitch={handleLangSwitch} />
+      <MobileNavbar cartCount={cart.itemCount} onLangSwitch={handleLangSwitch} />
 
-      {/* ...rest of homepage... */}
+      {/* Sticky Cart Panel */}
+      <StickyCartPanel />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <CartProvider>
+      <HomeContent />
+    </CartProvider>
   );
 }

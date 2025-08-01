@@ -1,23 +1,164 @@
-import axios from 'axios'
+import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
-interface MPesaTokenResponse {
-  access_token: string
-  expires_in: string
+interface MpesaConfig {
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  paybillNumber: string;
+  callbackUrl: string;
+  environment: 'sandbox' | 'production';
 }
 
-interface MPesaSTKPushResponse {
-  MerchantRequestID: string
-  CheckoutRequestID: string
-  ResponseCode: string
-  ResponseDescription: string
-  CustomerMessage: string
+interface StkPushRequest {
+  phone: string;
+  amount: number;
+  accountReference: string;
+  transactionDesc: string;
 }
 
-interface MPesaQueryResponse {
-  ResponseCode: string
-  ResponseDescription: string
-  MerchantRequestID: string
-  CheckoutRequestID: string
+interface StkPushResponse {
+  CheckoutRequestID: string;
+  ResponseCode: string;
+  ResponseDescription: string;
+  CustomerMessage: string;
+}
+
+class MpesaService {
+  private config: MpesaConfig;
+  private baseUrl: string;
+
+  constructor() {
+    this.config = {
+      consumerKey: process.env.MPESA_CONSUMER_KEY || '',
+      consumerSecret: process.env.MPESA_CONSUMER_SECRET || '',
+      passkey: process.env.MPESA_PASSKEY || '',
+      paybillNumber: process.env.MPESA_PAYBILL_NUMBER || '174379',
+      callbackUrl: process.env.MPESA_CALLBACK_URL || '',
+      environment: 'sandbox', // Change to 'production' for live
+    };
+
+    this.baseUrl = this.config.environment === 'sandbox' 
+      ? 'https://sandbox.safaricom.co.ke' 
+      : 'https://api.safaricom.co.ke';
+  }
+
+  private async getAccessToken(): Promise<string> {
+    const auth = Buffer.from(`${this.config.consumerKey}:${this.config.consumerSecret}`).toString('base64');
+    
+    try {
+      const response = await axios.get(`${this.baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
+        headers: {
+          Authorization: `Basic ${auth}`,
+        },
+      });
+
+      return response.data.access_token;
+    } catch (error) {
+      console.error('Error getting M-Pesa access token:', error);
+      throw new Error('Failed to authenticate with M-Pesa');
+    }
+  }
+
+  private generatePassword(): string {
+    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+    const password = Buffer.from(`${this.config.paybillNumber}${this.config.passkey}${timestamp}`).toString('base64');
+    return password;
+  }
+
+  private generateTimestamp(): string {
+    return new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+  }
+
+  async initiateSTKPush(request: StkPushRequest): Promise<StkPushResponse> {
+    const accessToken = await this.getAccessToken();
+    const timestamp = this.generateTimestamp();
+    const password = this.generatePassword();
+
+    // Format phone number (remove + and ensure it starts with 254)
+    let phone = request.phone.replace(/\D/g, '');
+    if (phone.startsWith('0')) {
+      phone = '254' + phone.slice(1);
+    } else if (phone.startsWith('7') || phone.startsWith('1')) {
+      phone = '254' + phone;
+    }
+
+    const payload = {
+      BusinessShortCode: this.config.paybillNumber,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: 'CustomerPayBillOnline',
+      Amount: Math.round(request.amount),
+      PartyA: phone,
+      PartyB: this.config.paybillNumber,
+      PhoneNumber: phone,
+      CallBackURL: this.config.callbackUrl,
+      AccountReference: request.accountReference,
+      TransactionDesc: request.transactionDesc,
+    };
+
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/mpesa/stkpush/v1/processrequest`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error initiating STK push:', error);
+      throw new Error('Failed to initiate M-Pesa payment');
+    }
+  }
+
+  processCallback(callbackData: any): {
+    isSuccessful: boolean;
+    transactionId?: string;
+    mpesaReceiptNumber?: string;
+    amount?: number;
+    phone?: string;
+  } {
+    try {
+      const stkCallback = callbackData.Body?.stkCallback;
+      
+      if (!stkCallback) {
+        return { isSuccessful: false };
+      }
+
+      const resultCode = stkCallback.ResultCode;
+      
+      if (resultCode !== 0) {
+        return { isSuccessful: false };
+      }
+
+      const callbackMetadata = stkCallback.CallbackMetadata?.Item || [];
+      const metadata: { [key: string]: any } = {};
+      
+      callbackMetadata.forEach((item: any) => {
+        metadata[item.Name] = item.Value;
+      });
+
+      return {
+        isSuccessful: true,
+        transactionId: stkCallback.CheckoutRequestID,
+        mpesaReceiptNumber: metadata.MpesaReceiptNumber,
+        amount: metadata.Amount,
+        phone: metadata.PhoneNumber,
+      };
+    } catch (error) {
+      console.error('Error processing M-Pesa callback:', error);
+      return { isSuccessful: false };
+    }
+  }
+}
+
+export const mpesaService = new MpesaService();
+export default MpesaService;
   ResultCode: string
   ResultDesc: string
 }

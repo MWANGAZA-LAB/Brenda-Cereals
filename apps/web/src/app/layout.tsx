@@ -1,20 +1,16 @@
 'use client';
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SessionProvider } from 'next-auth/react';
 import { useState } from 'react';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Using reliable system fonts instead of Google Fonts to avoid network timeouts
+const systemFonts = {
+  sans: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  mono: 'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
+};
 
 export default function RootLayout({
   children,
@@ -30,12 +26,20 @@ export default function RootLayout({
         <meta name="description" content="Your trusted source for wholesome Kenyan grains" />
         <title>Brenda Cereals</title>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-white text-gray-900 min-h-screen`}>
-        <QueryClientProvider client={queryClient}>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </QueryClientProvider>
+      <body 
+        className="bg-white text-gray-900 min-h-screen"
+        style={{ 
+          fontFamily: systemFonts.sans,
+          '--font-mono': systemFonts.mono 
+        } as React.CSSProperties}
+      >
+        <SessionProvider>
+          <QueryClientProvider client={queryClient}>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </QueryClientProvider>
+        </SessionProvider>
       </body>
     </html>
   );

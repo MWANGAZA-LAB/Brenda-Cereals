@@ -1,40 +1,143 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
 
-let products = [
-  {
-    id: 'maize',
-    name: 'Maize (White)',
-    image: '/maize-product.jpg',
-    prices: { '1kg': 120, '5kg': 550, '50kg': 5000 },
-    inStock: true,
-  },
-  {
-    id: 'beans',
-    name: 'Beans (Rosecoco)',
-    image: '/beans-product.jpg',
-    prices: { '1kg': 180, '5kg': 850, '50kg': 8000 },
-    inStock: true,
-  },
-];
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const category = searchParams.get('category');
+    const search = searchParams.get('search');
+    const inStock = searchParams.get('inStock');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') || '1');
+    const skip = (page - 1) * limit;
 
-export async function GET() {
-  return NextResponse.json(products);
+    // Build where clause
+    const where: any = {};
+    
+    if (category && category !== 'all') {
+      where.category = category;
+    }
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    if (inStock !== null && inStock !== undefined) {
+      where.inStock = inStock === 'true';
+    }
+
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.product.count({ where })
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return NextResponse.json({
+      success: true,
+      products,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== process.env.ADMIN_API_KEY) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const { name, description, price, weight, category, image, inStock } = await request.json();
+
+    // Validation
+    if (!name || !price || !weight) {
+      return NextResponse.json(
+        { error: 'Name, price, and weight are required' },
+        { status: 400 }
+      );
+    }
+
+    if (price <= 0) {
+      return NextResponse.json(
+        { error: 'Price must be greater than 0' },
+        { status: 400 }
+      );
+    }
+
+    // Check if product with same name exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { name }
+    });
+
+    if (existingProduct) {
+      return NextResponse.json(
+        { error: 'Product with this name already exists' },
+        { status: 400 }
+      );
+    }
+
+    const newProduct = await prisma.product.create({
+      data: {
+        name,
+        description: description || '',
+        price: parseFloat(price),
+        weight: weight || '1kg',
+        category: category || 'CEREAL',
+        image: image || '/placeholder-product.jpg',
+        inStock: inStock !== false,
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      product: newProduct
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error('Error creating product:', error);
+    return NextResponse.json(
+      { error: 'Failed to create product' },
+      { status: 500 }
+    );
   }
-  
-  const { name, image, prices, inStock } = await request.json();
-  const newProduct = {
-    id: name.toLowerCase().replace(/\s+/g, '-'),
-    name,
-    image,
-    prices,
-    inStock,
-  };
-  products.push(newProduct);
-  return NextResponse.json(newProduct, { status: 201 });
 } 
