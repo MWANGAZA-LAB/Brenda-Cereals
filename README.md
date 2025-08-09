@@ -1,12 +1,12 @@
 # 🌾 Brenda Cereals - E-commerce Platform
 
-A modern e-commerce platform for cereal and grain trading built with Next.js 15, featuring multi-currency payment support (M-Pesa & Bitcoin).
+A modern e-commerce platform for cereal and grain trading built with Next.js 15, featuring multi-currency payment support (M-Pesa, Safaricom Paybill & Bitcoin Wallet).
 
 ## ✨ Features
 
 - **🛒 E-commerce**: Product catalog, shopping cart, checkout, order management
 - **🔐 Authentication**: User registration, login, role-based access control
-- **💳 Payments**: M-Pesa integration, Bitcoin/Lightning Network support
+- **💳 Payments**: M-Pesa integration, Safaricom Paybill direct payment, Bitcoin Wallet QR code support
 - **🗄️ Database**: Prisma ORM with PostgreSQL, type-safe operations
 - **📱 Mobile-First**: Responsive design optimized for African markets
 - **🌍 Multi-language**: English and Swahili support

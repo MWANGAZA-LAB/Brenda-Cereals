@@ -34,11 +34,11 @@ interface OrderData {
 export default function PaymentPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
+  // const router = useRouter(); // Commented out as not currently used
   const { data: session } = useSession();
   
   const orderId = params.orderId as string;
-  const paymentMethod = searchParams.get('method') as 'MPESA' | 'BITCOIN';
+  const paymentMethod = searchParams.get('method') as 'MPESA' | 'SAFARICOM_PAYBILL' | 'BITCOIN_WALLET';
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -92,6 +92,7 @@ export default function PaymentPage() {
 
       return () => clearInterval(pollPayment);
     }
+    return undefined;
   }, [paymentStatus, orderId]);
 
   const initiatePayment = async () => {

@@ -58,7 +58,7 @@ model User {
   phone         String?
   password      String?   // For email/password auth
   avatar        String?
-  role          Role      @default(CUSTOMER)
+  role          String    @default("CUSTOMER")
   isVerified    Boolean   @default(false)
   emailVerified DateTime?
   address       String?
@@ -112,7 +112,7 @@ model Product {
   slug        String   @unique
   description String?
   image       String
-  images      String[] @default([])
+  images      String   @default("")  // Comma-separated image URLs
   categoryId  String
   brand       String?
   inStock     Boolean  @default(true)
@@ -169,7 +169,7 @@ model Order {
   userId           String?
   email            String
   phone            String?
-  status           OrderStatus @default(PENDING)
+  status           String      @default("PENDING")
   total            Int         // Total in cents
   subtotal         Int         // Subtotal in cents
   deliveryFee      Int         @default(0)
@@ -178,12 +178,12 @@ model Order {
   
   // Delivery Information
   deliveryLocation String
-  deliveryAddress  Json        // Full address object
+  deliveryAddress  String      // JSON string of address object
   estimatedDelivery DateTime?
   
   // Payment Information
   paymentMethod    String
-  paymentStatus    PaymentStatus @default(PENDING)
+  paymentStatus    String        @default("PENDING")
   paymentId        String?
   paidAt           DateTime?
   
@@ -217,8 +217,8 @@ model OrderItem {
 model Payment {
   id            String        @id @default(uuid())
   orderId       String
-  method        PaymentMethod
-  status        PaymentStatus @default(PENDING)
+  method        String
+  status        String        @default("PENDING")
   amount        Int           // Amount in cents
   currency      String        @default("KES")
   
@@ -228,11 +228,9 @@ model Payment {
   paybillNumber String?       // Our paybill number
   accountRef    String?       // Account reference for paybill
   
-  // Bitcoin specific fields
-  bitcoinAddress String?      // Generated bitcoin address
-  bitcoinAmount  String?      // Amount in BTC
-  bitcoinTxHash  String?      // Transaction hash when paid
-  qrCodeData     String?      // QR code data for payment
+  // Safaricom Paybill specific fields
+  paybillConfirmation String? // Paybill confirmation code
+  paybillReference    String? // Reference number for paybill payment
   
   // Timestamps
   createdAt     DateTime @default(now())
@@ -245,25 +243,14 @@ model Payment {
   
   @@map("payments")
 }
-  amount      Float
-  status      PaymentStatus @default(PENDING)
-  externalId  String?   // MPesa CheckoutRequestID, Bitcoin tx hash, etc.
-  metadata    Json?     // Store payment-specific data
-  createdAt   DateTime  @default(now())
-  completedAt DateTime?
-  
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  @@map("payments")
-}
 
 // Payment Webhook Tracking
 model PaymentWebhook {
   id          String    @id @default(uuid())
   paymentId   String?
-  provider    String    // "mpesa" or "bitcoin"
+  provider    String    // "mpesa", "safaricom_paybill", or "bitcoin_wallet"
   eventType   String    // "payment_received", "payment_confirmed", etc.
-  payload     Json      // Full webhook payload
+  payload     String    // JSON string of webhook payload
   processed   Boolean   @default(false)
   createdAt   DateTime  @default(now())
   processedAt DateTime?
@@ -271,34 +258,9 @@ model PaymentWebhook {
   @@map("payment_webhooks")
 }
 
-// Enums
-enum Role {
-  CUSTOMER
-  ADMIN
-  MANAGER
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-  PAID
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-enum PaymentMethod {
-  MPESA
-  BITCOIN
-  LIGHTNING
-  CASH_ON_DELIVERY
-}
+// Note: Using strings instead of enums for SQLite compatibility
+// Valid values:
+// Role: "CUSTOMER", "ADMIN", "MANAGER"
+// OrderStatus: "PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED", "PAID"
+// PaymentStatus: "PENDING", "COMPLETED", "FAILED", "REFUNDED"
+// PaymentMethod: "MPESA", "SAFARICOM_PAYBILL", "BITCOIN_WALLET", "CASH_ON_DELIVERY"

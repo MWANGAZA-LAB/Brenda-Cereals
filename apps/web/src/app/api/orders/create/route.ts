@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { OrderStatus } from '@prisma/client';
+import prisma from '@/lib/prisma';
 
 interface OrderItem {
   id: string;
@@ -91,7 +90,7 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         userId: user.id,
-        status: OrderStatus.PENDING,
+        status: 'PENDING',
         subtotal,
         deliveryFee,
         total,

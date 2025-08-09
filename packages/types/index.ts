@@ -18,7 +18,7 @@ export interface Order {
   total: number;
   deliveryLocation: string;
   deliveryFee: number;
-  paymentMethod: 'mpesa' | 'bitcoin' | 'cash';
+  paymentMethod: 'mpesa' | 'safaricom_paybill' | 'bitcoin_wallet' | 'cash';
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: string;
   updatedAt?: string;
@@ -56,7 +56,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
-export type PaymentMethod = 'mpesa' | 'bitcoin' | 'cash';
+export type PaymentMethod = 'mpesa' | 'safaricom_paybill' | 'bitcoin_wallet' | 'cash';
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 export type WeightOption = '1kg' | '5kg' | '50kg';
 
