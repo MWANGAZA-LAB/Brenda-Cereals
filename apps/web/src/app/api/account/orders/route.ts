@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
 
-    const formattedOrders = orders.map(order => ({
+    const formattedOrders = orders.map((order: any) => ({
       id: order.id,
       status: order.status,
       paymentStatus: order.paymentStatus,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       paidAt: order.paidAt,
-      items: order.items.map(item => ({
+      items: order.items.map((item: any) => ({
         productName: item.productName,
         productImage: item.productImage,
         weight: item.weight,

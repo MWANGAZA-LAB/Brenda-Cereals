@@ -1,5 +1,5 @@
 'use client';
-import type { Metadata } from "next";
+// import type { Metadata } from "next"; // Commented out as not currently used
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

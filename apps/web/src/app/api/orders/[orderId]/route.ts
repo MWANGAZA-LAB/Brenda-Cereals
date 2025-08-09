@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
@@ -63,7 +63,7 @@ export async function GET(
       deliveryPhone: order.deliveryPhone,
       deliveryAddress: order.deliveryAddress,
       deliveryLocationName: order.deliveryLocationName,
-      items: order.items.map(item => ({
+      items: order.items.map((item: any) => ({
         productName: item.productName,
         productImage: item.productImage,
         weight: item.weight,

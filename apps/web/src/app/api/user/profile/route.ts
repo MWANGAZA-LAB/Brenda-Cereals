@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -56,9 +56,9 @@ export async function GET(req: NextRequest) {
     });
 
     const stats = {
-      totalOrders: orderStats.reduce((sum, stat) => sum + stat._count.id, 0),
-      totalSpent: orderStats.reduce((sum, stat) => sum + (stat._sum.total || 0), 0),
-      ordersByStatus: orderStats.reduce((acc, stat) => {
+      totalOrders: orderStats.reduce((sum: number, stat: any) => sum + stat._count.id, 0),
+      totalSpent: orderStats.reduce((sum: number, stat: any) => sum + (stat._sum.total || 0), 0),
+      ordersByStatus: orderStats.reduce((acc: any, stat: any) => {
         acc[stat.status] = stat._count.id;
         return acc;
       }, {} as Record<string, number>)

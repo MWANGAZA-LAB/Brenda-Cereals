@@ -62,12 +62,15 @@ export default function AdminPage() {
     const product: Product = {
       id: editing ? form.id : form.name.toLowerCase().replace(/\s+/g, '-'),
       name: form.name,
+      description: `Premium quality ${form.name.toLowerCase()} sourced from local farmers`,
       image: form.image,
+      category: 'cereals',
       prices: {
         '1kg': Number(form.prices['1kg']),
         '5kg': Number(form.prices['5kg']),
         '50kg': Number(form.prices['50kg']),
       },
+      stock: 100, // Default stock value
       inStock: form.inStock,
     };
     if (editing) {
