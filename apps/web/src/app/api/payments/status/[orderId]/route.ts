@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const { orderId } = params;
+    const { orderId } = await params;
 
     // Find the user
     const user = await prisma.user.findUnique({
@@ -65,10 +65,12 @@ export async function GET(
         amount: payment.amount,
         createdAt: payment.createdAt,
         confirmedAt: payment.confirmedAt,
-        mpesaCheckoutRequestId: payment.mpesaCheckoutRequestId,
-        bitcoinAddress: payment.bitcoinAddress,
-        bitcoinAmount: payment.bitcoinAmount,
-        bitcoinTxHash: payment.bitcoinTxHash,
+        mpesaCode: payment.mpesaCode,
+        mpesaPhone: payment.mpesaPhone,
+        paybillNumber: payment.paybillNumber,
+        accountRef: payment.accountRef,
+        paybillConfirmation: payment.paybillConfirmation,
+        paybillReference: payment.paybillReference,
       } : null
     });
 

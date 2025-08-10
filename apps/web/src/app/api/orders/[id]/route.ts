@@ -38,28 +38,32 @@ export async function GET(
         userId: user.id,
       },
       include: {
-        orderItems: {
+        items: {
           include: {
             product: {
               select: {
                 id: true,
                 name: true,
                 image: true,
-                weight: true,
                 description: true,
+              }
+            },
+            variant: {
+              select: {
+                weight: true,
               }
             }
           }
         },
-        payment: {
+        payments: {
           select: {
             method: true,
             status: true,
             amount: true,
             createdAt: true,
             confirmedAt: true,
-            bitcoinAddress: true,
-            mpesaTransactionId: true,
+            mpesaCode: true,
+            mpesaPhone: true,
           }
         }
       }
@@ -152,15 +156,15 @@ export async function PATCH(
           where: { id: orderId },
           data: {
             status: 'CANCELLED',
-            cancelledAt: new Date(),
+            // cancelledAt: new Date(), // Field not in schema
           },
           include: {
-            orderItems: {
+            items: {
               include: {
                 product: true
               }
             },
-            payment: true
+            payments: true
           }
         });
         break;
@@ -177,15 +181,15 @@ export async function PATCH(
           where: { id: orderId },
           data: {
             status: 'REFUND_REQUESTED',
-            refundRequestedAt: new Date(),
+            // refundRequestedAt: new Date(), // Field not in schema
           },
           include: {
-            orderItems: {
+            items: {
               include: {
                 product: true
               }
             },
-            payment: true
+            payments: true
           }
         });
         break;

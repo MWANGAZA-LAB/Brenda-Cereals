@@ -4,10 +4,8 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 interface OrderItem {
-  id: string;
-  name: string;
-  image: string;
-  weight: string;
+  productId: string;
+  variantId: string;
   quantity: number;
   price: number;
 }
@@ -90,24 +88,21 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         userId: user.id,
+        email: session.user.email,
+        phone: deliveryInfo.phone,
         status: 'PENDING',
         subtotal,
         deliveryFee,
         total,
-        deliveryPhone: deliveryInfo.phone,
-        deliveryAddress: deliveryInfo.address,
-        deliveryLat: deliveryInfo.location.lat,
-        deliveryLng: deliveryInfo.location.lng,
-        deliveryLocationName: deliveryInfo.location.address,
+        deliveryLocation: JSON.stringify(deliveryInfo.location),
+        deliveryAddress: JSON.stringify(deliveryInfo),
         paymentMethod,
         items: {
           create: items.map(item => ({
-            productName: item.name,
-            productImage: item.image,
-            weight: item.weight,
+            productId: item.productId,
+            variantId: item.variantId,
             quantity: item.quantity,
-            unitPrice: item.price,
-            totalPrice: item.price * item.quantity,
+            price: item.price,
           }))
         }
       },

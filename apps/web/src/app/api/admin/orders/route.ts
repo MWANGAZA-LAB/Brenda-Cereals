@@ -60,18 +60,22 @@ export async function GET(req: NextRequest) {
               phone: true,
             }
           },
-          orderItems: {
+          items: {
             include: {
               product: {
                 select: {
                   name: true,
                   image: true,
+                }
+              },
+              variant: {
+                select: {
                   weight: true,
                 }
               }
             }
           },
-          payment: {
+          payments: {
             select: {
               method: true,
               status: true,
@@ -205,8 +209,8 @@ export async function PATCH(req: NextRequest) {
         for (const orderId of orderIds) {
           const updatedOrder = await prisma.order.update({
             where: { id: orderId },
-            data: { 
-              adminNotes: notes,
+                        data: {
+              // adminNotes: notes, // Field not in schema
               updatedAt: new Date()
             }
           });
@@ -236,8 +240,8 @@ export async function PATCH(req: NextRequest) {
             data: {
               status: 'REFUNDED',
               paymentStatus: 'REFUNDED',
-              refundedAt: new Date(),
-              adminNotes: notes || 'Refund processed by admin'
+              // refundedAt: new Date(), // Field not in schema
+              // adminNotes: notes || 'Refund processed by admin' // Field not in schema
             }
           });
           results.push(updatedOrder);

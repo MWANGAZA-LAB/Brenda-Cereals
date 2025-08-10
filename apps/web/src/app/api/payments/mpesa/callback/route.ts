@@ -37,11 +37,8 @@ export async function POST(req: NextRequest) {
           data: {
             status: 'COMPLETED',
             confirmedAt: new Date(),
-            metadata: {
-              mpesaReceiptNumber: result.mpesaReceiptNumber,
-              amount: result.amount,
-              phone: result.phone,
-            },
+            // Note: mpesaCode is already set when payment was created
+            // Additional M-Pesa data can be stored in PaymentWebhook if needed
           },
         });
 
@@ -51,7 +48,7 @@ export async function POST(req: NextRequest) {
           data: {
             paymentStatus: 'PAID',
             paidAt: new Date(),
-            paymentId: result.mpesaReceiptNumber,
+            paymentId: result.mpesaReceiptNumber || null,
           },
         });
 

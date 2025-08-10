@@ -53,8 +53,26 @@ export default function PaymentPage() {
       try {
         const response = await fetch(`/api/orders/${orderId}`);
         if (response.ok) {
-          const orderData = await response.json();
-          setOrder(orderData);
+          const responseData = await response.json();
+          if (responseData.success && responseData.order) {
+            // Transform the order data to match the expected interface
+            const orderData: OrderData = {
+              id: responseData.order.id,
+              total: responseData.order.total,
+              status: responseData.order.status,
+              paymentMethod: responseData.order.paymentMethod,
+              items: responseData.order.orderItems?.map((item: any) => ({
+                productName: item.product?.name || 'Unknown Product',
+                productImage: item.product?.image || '',
+                weight: item.product?.weight || '',
+                quantity: item.quantity,
+                totalPrice: item.totalPrice,
+              })) || []
+            };
+            setOrder(orderData);
+          } else {
+            setError('Invalid order data');
+          }
         } else {
           setError('Order not found');
         }

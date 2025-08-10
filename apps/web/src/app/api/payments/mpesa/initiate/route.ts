@@ -104,7 +104,8 @@ export async function POST(req: NextRequest) {
         method: 'MPESA',
         amount: order.total,
         status: 'PENDING',
-        mpesaCheckoutRequestId: mpesaResponse.CheckoutRequestID,
+        // Note: mpesaCheckoutRequestId is not stored in the current schema
+        // The mpesaCode will be set when the payment is confirmed
         mpesaPhone: cleanPhone,
       }
     });

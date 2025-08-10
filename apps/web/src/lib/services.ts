@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 export const productService = {
   async getAll() {
     return await prisma.product.findMany({
-      where: { isActive: true },
+      where: { inStock: true },
       orderBy: { createdAt: 'desc' }
     })
   },
@@ -22,7 +22,7 @@ export const productService = {
     return await prisma.product.findMany({
       where: { 
         categoryId,
-        isActive: true 
+        inStock: true 
       },
       include: {
         category: true
@@ -34,11 +34,11 @@ export const productService = {
     return await prisma.product.findMany({
       where: {
         AND: [
-          { isActive: true },
+          { inStock: true },
           {
             OR: [
-              { name: { contains: query, mode: 'insensitive' } },
-              { description: { contains: query, mode: 'insensitive' } }
+              { name: { contains: query } },
+              { description: { contains: query } }
             ]
           }
         ]
@@ -58,8 +58,8 @@ export const userService = {
     return await prisma.user.create({
       data: {
         email: data.email,
-        name: data.name,
-        phone: data.phone,
+        name: data.name || null,
+        phone: data.phone || null,
         // Note: In real implementation, you'd handle password hashing
       }
     })
@@ -97,9 +97,9 @@ export const cartService = {
     })
   },
 
-  async addToCart(userId: string, productId: string, quantity: number) {
+  async addToCart(userId: string, productId: string, variantId: string, quantity: number) {
     const existingItem = await prisma.cartItem.findFirst({
-      where: { userId, productId }
+      where: { userId, variantId }
     })
 
     if (existingItem) {
@@ -113,6 +113,7 @@ export const cartService = {
       data: {
         userId,
         productId,
+        variantId,
         quantity
       }
     })
@@ -141,10 +142,15 @@ export const cartService = {
 // Order Services
 export const orderService = {
   async create(userId: string, orderData: {
+    email: string
     total: number
-    shippingAddress: any
+    subtotal: number
+    deliveryAddress: any
+    deliveryLocation: any
+    paymentMethod: string
     items: Array<{
       productId: string
+      variantId: string
       quantity: number
       price: number
     }>
@@ -152,12 +158,17 @@ export const orderService = {
     return await prisma.order.create({
       data: {
         userId,
+        email: orderData.email,
         total: orderData.total,
+        subtotal: orderData.subtotal,
         status: 'PENDING',
-        shippingAddress: orderData.shippingAddress,
+        deliveryAddress: orderData.deliveryAddress,
+        deliveryLocation: orderData.deliveryLocation,
+        paymentMethod: orderData.paymentMethod,
         items: {
           create: orderData.items.map(item => ({
             productId: item.productId,
+            variantId: item.variantId,
             quantity: item.quantity,
             price: item.price
           }))

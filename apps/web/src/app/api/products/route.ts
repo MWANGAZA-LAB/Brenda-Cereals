@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if product with same name exists
-    const existingProduct = await prisma.product.findUnique({
+    const existingProduct = await prisma.product.findFirst({
       where: { name }
     });
 
@@ -116,15 +116,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+    // Find or create category
+    let categoryRecord = await prisma.category.findFirst({
+      where: { name: category || 'CEREAL' }
+    });
+
+    if (!categoryRecord) {
+      categoryRecord = await prisma.category.create({
+        data: {
+          name: category || 'CEREAL',
+          slug: (category || 'CEREAL').toLowerCase().replace(/\s+/g, '-'),
+          description: `${category || 'CEREAL'} products`
+        }
+      });
+    }
+
     const newProduct = await prisma.product.create({
       data: {
         name,
+        slug,
         description: description || '',
-        price: parseFloat(price),
-        weight: weight || '1kg',
-        category: category || 'CEREAL',
         image: image || '/placeholder-product.jpg',
         inStock: inStock !== false,
+        categoryId: categoryRecord.id,
+        variants: {
+          create: {
+            name: weight || '1kg',
+            weight: weight || '1kg',
+            price: Math.round(parseFloat(price) * 100), // Convert to cents
+            inStock: inStock !== false,
+            inventory: 100 // Default inventory
+          }
+        }
+      },
+      include: {
+        variants: true,
+        category: true
       }
     });
 

@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
           user: {
             select: { name: true, email: true }
           },
-          orderItems: {
+          items: {
             include: {
               product: {
                 select: { name: true }
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
       // Top selling products
       prisma.orderItem.groupBy({
         by: ['productId'],
-        _sum: { quantity: true, total: true },
+        _sum: { quantity: true, price: true },
         _count: { id: true },
         orderBy: { _sum: { quantity: 'desc' } },
         take: 5
@@ -120,12 +120,12 @@ export async function GET(req: NextRequest) {
       topProducts.map(async (item: any) => {
         const product = await prisma.product.findUnique({
           where: { id: item.productId },
-          select: { name: true, image: true, price: true }
+          select: { name: true, image: true }
         });
         return {
           ...product,
           totalSold: item._sum.quantity,
-          totalRevenue: item._sum.total,
+          totalRevenue: (item._sum.price || 0) * (item._sum.quantity || 0),
           orderCount: item._count.id
         };
       })
@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
         id: order.id,
         customerName: order.user.name,
         customerEmail: order.user.email,
-        items: order.orderItems.length,
+        items: order.items.length,
         total: order.total,
         status: order.status,
         paymentStatus: order.paymentStatus,

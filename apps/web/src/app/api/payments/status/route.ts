@@ -42,11 +42,9 @@ export async function GET(req: NextRequest) {
         paybillNumber: payment.paybillNumber,
         accountRef: payment.accountRef,
       }),
-      ...(payment.method === 'BITCOIN' && {
-        bitcoinAddress: payment.bitcoinAddress,
-        bitcoinAmount: payment.bitcoinAmount,
-        bitcoinTxHash: payment.bitcoinTxHash,
-        qrCodeData: payment.qrCodeData,
+      ...(payment.method === 'SAFARICOM_PAYBILL' && {
+        paybillConfirmation: payment.paybillConfirmation,
+        paybillReference: payment.paybillReference,
       }),
     });
 
