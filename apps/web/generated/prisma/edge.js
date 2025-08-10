@@ -283,7 +283,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-2\\apps\\web\\generated\\prisma",
+      "value": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-3\\apps\\web\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -297,12 +297,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-2\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-3\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../../../prisma",
   "clientVersion": "5.22.0",
@@ -311,6 +310,7 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {

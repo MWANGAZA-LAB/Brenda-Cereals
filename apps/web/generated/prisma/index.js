@@ -284,7 +284,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-2\\apps\\web\\generated\\prisma",
+      "value": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-3\\apps\\web\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -298,12 +298,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-2\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\mwang\\Desktop\\Brenda-Cereals-3\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../../../prisma",
   "clientVersion": "5.22.0",
@@ -312,6 +311,7 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -330,8 +330,8 @@ const fs = require('fs')
 config.dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   const alternativePaths = [
-    "apps/web/generated/prisma",
-    "web/generated/prisma",
+    "generated/prisma",
+    "prisma",
   ]
   
   const alternativePath = alternativePaths.find((altPath) => {
@@ -360,7 +360,7 @@ Object.assign(exports, Prisma)
 
 // file annotations for bundling tools to include these files
 path.join(__dirname, "query_engine-windows.dll.node");
-path.join(process.cwd(), "apps/web/generated/prisma/query_engine-windows.dll.node")
+path.join(process.cwd(), "generated/prisma/query_engine-windows.dll.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "apps/web/generated/prisma/schema.prisma")
+path.join(process.cwd(), "generated/prisma/schema.prisma")
