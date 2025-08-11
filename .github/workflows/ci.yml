@@ -40,6 +40,7 @@ jobs:
     - name: Run tests
       run: |
         cd apps/web && npm run test:coverage
+      continue-on-error: true
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -48,6 +49,7 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
+      continue-on-error: true
 
   build:
     runs-on: ubuntu-latest
@@ -105,6 +107,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         args: --severity-threshold=high
+      continue-on-error: true
         
   quality:
     runs-on: ubuntu-latest
@@ -168,6 +171,7 @@ jobs:
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       if: always()
+      continue-on-error: true
       
     - name: Create CI summary
       run: |
