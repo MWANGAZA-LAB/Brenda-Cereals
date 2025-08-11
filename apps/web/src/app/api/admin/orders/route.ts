@@ -156,7 +156,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     let updateData: any = {};
-    let results = [];
+    const results = [];
 
     switch (action) {
       case 'UPDATE_STATUS':

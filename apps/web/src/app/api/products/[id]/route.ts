@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-let products = [
+const products = [
   {
     id: 'maize',
     name: 'Maize (White)',

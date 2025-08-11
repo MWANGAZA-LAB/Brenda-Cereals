@@ -231,7 +231,7 @@ export default function PaymentMethodSelector({
                 </div>
                 <div className="mt-3 p-2 bg-yellow-100 rounded">
                   <p className="text-xs text-yellow-800">
-                    After payment, you'll receive an SMS confirmation. Enter the confirmation code to complete your order.
+                    After payment, you&apos;ll receive an SMS confirmation. Enter the confirmation code to complete your order.
                   </p>
                 </div>
               </div>
