@@ -15,6 +15,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm install
+        
+    - name: Setup workspace
+      run: |
+        npm run build:packages
+      
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
       
@@ -55,11 +69,17 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
+        
+    - name: Setup workspace
+      run: |
+        npm run build:packages
+        
+    - name: Install web app dependencies
+      run: |
         cd apps/web && npm install
         
     - name: Build application
       run: |
-        npm run build:packages
         cd apps/web && npm run build
         
     - name: Deploy to GitHub Pages
