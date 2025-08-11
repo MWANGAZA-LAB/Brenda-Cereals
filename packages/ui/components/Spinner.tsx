@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import React from 'react';
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -10,11 +10,11 @@ export const Spinner = ({
   size = 'md', 
   color = 'primary', 
   className = '' 
-}: SpinnerProps): ReactElement => {
+}: SpinnerProps): React.ReactElement => {
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12'
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8'
   };
   
   const colorClasses = {
@@ -23,7 +23,7 @@ export const Spinner = ({
     white: 'border-white'
   };
   
-  const classes = `animate-spin rounded-full border-b-2 ${sizeClasses[size]} ${colorClasses[color]} ${className}`;
+  const classes = `animate-spin rounded-full border-2 border-t-transparent ${sizeClasses[size]} ${colorClasses[color]} ${className}`;
   
   return (
     <div className={classes}></div>

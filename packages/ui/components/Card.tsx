@@ -1,26 +1,16 @@
-import React, { type ReactElement } from 'react';
+import React from 'react';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  padding?: 'sm' | 'md' | 'lg';
+  onClick?: () => void;
 }
 
-export const Card = ({ 
-  children, 
-  className = '', 
-  padding = 'md' 
-}: CardProps): ReactElement => {
-  const paddingClasses = {
-    sm: 'p-3',
-    md: 'p-4',
-    lg: 'p-6'
-  };
-  
-  const classes = `bg-white rounded-lg shadow-md border ${paddingClasses[padding]} ${className}`;
+export const Card = ({ children, className = '', onClick }: CardProps): React.ReactElement => {
+  const classes = `bg-white rounded-lg shadow-md p-6 ${className}`;
   
   return (
-    <div className={classes}>
+    <div className={classes} onClick={onClick}>
       {children}
     </div>
   );

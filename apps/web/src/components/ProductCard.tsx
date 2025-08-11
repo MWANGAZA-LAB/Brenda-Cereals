@@ -41,21 +41,26 @@ export default function ProductCard({ product }: Props) {
   const availableWeights = Object.keys(product.prices);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full transition-transform hover:scale-105">
-      <div className="w-full h-48 relative mb-4">
+    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4 sm:p-6 flex flex-col h-full">
+      {/* Product Image - Enhanced Mobile */}
+      <div className="w-full h-40 sm:h-48 relative mb-4 rounded-lg overflow-hidden">
         <Image
           src={product.image}
           alt={product.name}
           fill
           style={{ objectFit: 'cover' }}
-          className="rounded-lg"
+          className="rounded-lg hover:scale-105 transition-transform duration-200"
         />
       </div>
       
       <div className="flex-1 flex flex-col">
-        <h3 className="font-semibold text-lg mb-2 text-gray-800">{product.name}</h3>
-        <p className="text-gray-600 text-sm mb-4 flex-1">{product.description}</p>
+        {/* Product Name - Mobile Optimized */}
+        <h3 className="font-semibold text-base sm:text-lg mb-2 text-gray-800 line-clamp-2">{product.name}</h3>
         
+        {/* Description - Mobile Optimized */}
+        <p className="text-gray-600 text-sm mb-4 flex-1 line-clamp-3">{product.description}</p>
+        
+        {/* Weight Selection - Enhanced Mobile */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Weight:
@@ -63,7 +68,7 @@ export default function ProductCard({ product }: Props) {
           <select
             value={selectedWeight}
             onChange={(e) => setSelectedWeight(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
           >
             {availableWeights.map((weight) => (
               <option key={weight} value={weight}>
@@ -73,8 +78,9 @@ export default function ProductCard({ product }: Props) {
           </select>
         </div>
 
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-2xl font-bold text-green-600">
+        {/* Price and Stock - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+          <span className="text-xl sm:text-2xl font-bold text-green-600">
             KSh {product.prices[selectedWeight]?.toLocaleString()}
           </span>
           <span className="text-sm text-gray-500">
@@ -82,12 +88,13 @@ export default function ProductCard({ product }: Props) {
           </span>
         </div>
 
+        {/* Add to Cart Button - Touch Friendly */}
         <button
           onClick={handleAddToCart}
           disabled={!product.inStock}
-          className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
+          className={`w-full py-3 sm:py-2 px-4 rounded-md font-medium transition-all duration-200 ${
             product.inStock
-              ? 'bg-green-600 hover:bg-green-700 text-white'
+              ? 'btn-primary active:scale-95'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >

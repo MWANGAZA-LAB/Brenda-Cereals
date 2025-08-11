@@ -1,24 +1,25 @@
 {
   "name": "@brenda-cereals/ui",
   "version": "1.0.0",
-  "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "description": "Shared UI components for Brenda Cereals",
+  "main": "index.tsx",
+  "types": "index.tsx",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "type-check": "tsc --noEmit",
+    "dev": "tsc --noEmit --watch"
   },
   "dependencies": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "@brenda-cereals/types": "workspace:*"
   },
   "devDependencies": {
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "typescript": "^5.0.0"
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

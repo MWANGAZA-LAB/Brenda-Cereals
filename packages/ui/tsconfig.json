@@ -2,34 +2,24 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["dom", "dom.iterable", "ES2020"],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": false,
-    "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "baseUrl": "./",
+    "types": ["react", "react-dom"],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@brenda-cereals/types": ["../types"]
     },
-    "types": ["node", "react", "react-dom"]
+    "noEmit": true,
+    "allowJs": false
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.js",
-    "**/*.jsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
 }

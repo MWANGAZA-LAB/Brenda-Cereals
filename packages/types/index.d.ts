@@ -57,4 +57,3 @@ export interface ProductFormData {
     prices: Record<WeightOption, number>;
     inStock: boolean;
 }
-//# sourceMappingURL=index.d.ts.map

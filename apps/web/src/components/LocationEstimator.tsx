@@ -36,32 +36,43 @@ export default function LocationEstimator() {
     : selected.delivery;
 
   return (
-    <div className="w-full max-w-xl mx-auto my-6 p-4 bg-gray-50 rounded shadow flex flex-col md:flex-row items-center gap-4">
-      <div className="flex-1">
-        <label className="block text-sm font-medium mb-1">Where are you ordering from?</label>
-        <select
-          className="w-full border rounded px-3 py-2"
-          value={selected.name}
-          onChange={(e) => {
-            setSelected(locations.find((l) => l.name === e.target.value) || locations[0]);
-            setAutoDetected(null);
-          }}
+    <div className="w-full max-w-4xl mx-auto my-6 p-4 sm:p-6 bg-gray-50 rounded-lg shadow-sm">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+        {/* Location Selection - Mobile Optimized */}
+        <div className="flex-1 w-full lg:w-auto">
+          <label className="block text-sm font-medium mb-2 text-gray-700">Where are you ordering from?</label>
+          <select
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            value={selected.name}
+            onChange={(e) => {
+              setSelected(locations.find((l) => l.name === e.target.value) || locations[0]);
+              setAutoDetected(null);
+            }}
+          >
+            {locations.map((loc) => (
+              <option key={loc.name} value={loc.name}>{loc.name}</option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Detect Location Button - Touch Friendly */}
+        <button
+          className="w-full lg:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all duration-200 active:scale-95"
+          onClick={handleDetect}
+          type="button"
         >
-          {locations.map((loc) => (
-            <option key={loc.name} value={loc.name}>{loc.name}</option>
-          ))}
-        </select>
-      </div>
-      <button
-        className="px-4 py-2 bg-green-600 text-white rounded font-semibold"
-        onClick={handleDetect}
-        type="button"
-      >
-        Detect Location
-      </button>
-      <div className="flex-1 text-center md:text-right">
-        <div className="text-sm text-gray-600 mb-1">Estimated total to <span className="font-bold">{displayLocation}</span>:</div>
-        <div className="text-lg font-bold text-green-700">Ksh {delivery}</div>
+          Detect Location
+        </button>
+        
+        {/* Delivery Fee Display - Mobile Optimized */}
+        <div className="flex-1 w-full lg:w-auto text-center lg:text-right">
+          <div className="text-sm text-gray-600 mb-1">
+            Estimated delivery to <span className="font-bold text-gray-800">{displayLocation}</span>:
+          </div>
+          <div className="text-xl sm:text-2xl font-bold text-green-700">
+            KSh {delivery}
+          </div>
+        </div>
       </div>
     </div>
   );

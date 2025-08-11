@@ -1,0 +1,51 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getNearestLocation = exports.getLocationsByDeliveryFee = exports.calculateDeliveryFee = exports.getLocationByName = exports.LOCATIONS = void 0;
+exports.LOCATIONS = [
+    { name: "Nairobi", delivery: 300, coordinates: { lat: -1.2921, lng: 36.8219 } },
+    { name: "Eldoret", delivery: 250, coordinates: { lat: 0.5143, lng: 35.2697 } },
+    { name: "Kisumu", delivery: 350, coordinates: { lat: -0.1022, lng: 34.7617 } },
+    { name: "Mombasa", delivery: 400, coordinates: { lat: -4.0435, lng: 39.6682 } },
+    { name: "Nakuru", delivery: 280, coordinates: { lat: -0.3031, lng: 36.0800 } },
+    { name: "Thika", delivery: 200, coordinates: { lat: -1.0332, lng: 37.0924 } },
+    { name: "Machakos", delivery: 220, coordinates: { lat: -1.5177, lng: 37.2634 } },
+];
+const getLocationByName = (name) => {
+    return exports.LOCATIONS.find(location => location.name.toLowerCase() === name.toLowerCase());
+};
+exports.getLocationByName = getLocationByName;
+const calculateDeliveryFee = (locationName) => {
+    const location = (0, exports.getLocationByName)(locationName);
+    return location?.delivery || 500; // Default fee if location not found
+};
+exports.calculateDeliveryFee = calculateDeliveryFee;
+const getLocationsByDeliveryFee = (maxFee) => {
+    return exports.LOCATIONS.filter(location => location.delivery <= maxFee);
+};
+exports.getLocationsByDeliveryFee = getLocationsByDeliveryFee;
+const getNearestLocation = (lat, lng) => {
+    let nearest = exports.LOCATIONS[0];
+    let minDistance = Number.MAX_VALUE;
+    exports.LOCATIONS.forEach(location => {
+        if (location.coordinates) {
+            const distance = calculateDistance(lat, lng, location.coordinates.lat, location.coordinates.lng);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearest = location;
+            }
+        }
+    });
+    return nearest;
+};
+exports.getNearestLocation = getNearestLocation;
+// Haversine formula to calculate distance between two coordinates
+const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};

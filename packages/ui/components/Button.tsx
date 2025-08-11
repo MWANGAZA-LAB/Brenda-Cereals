@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
@@ -15,7 +15,7 @@ export const Button = ({
   children,
   disabled,
   ...props 
-}: ButtonProps): ReactElement => {
+}: ButtonProps): React.ReactElement => {
   const baseClasses = 'font-semibold rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
   
   const variantClasses = {
