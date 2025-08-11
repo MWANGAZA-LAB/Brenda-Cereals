@@ -143,11 +143,30 @@ jobs:
     
     steps:
     - name: Notify CI Status
-      uses: 8398a7/action-slack@v3
+      uses: slackapi/slack-github-action@v1.24.0
       with:
-        status: ${{ job.status }}
-        channel: '#ci-status'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        channel-id: 'ci-status'
+        payload: |
+          {
+            "text": "CI/CD Pipeline ${{ job.status }} for Brenda Cereals",
+            "attachments": [{
+              "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+              "fields": [
+                {
+                  "title": "Status",
+                  "value": "${{ job.status }}",
+                  "short": true
+                },
+                {
+                  "title": "Repository",
+                  "value": "${{ github.repository }}",
+                  "short": true
+                }
+              ]
+            }]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       if: always()
       
     - name: Create CI summary

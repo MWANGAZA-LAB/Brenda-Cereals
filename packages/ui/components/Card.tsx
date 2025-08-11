@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 
 interface CardProps {
   children: React.ReactNode;
@@ -6,11 +6,11 @@ interface CardProps {
   padding?: 'sm' | 'md' | 'lg';
 }
 
-export const Card: React.FC<CardProps> = ({ 
+export const Card = ({ 
   children, 
   className = '', 
   padding = 'md' 
-}) => {
+}: CardProps): ReactElement => {
   const paddingClasses = {
     sm: 'p-3',
     md: 'p-4',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,13 +8,13 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const Modal: React.FC<ModalProps> = ({ 
+export const Modal = ({ 
   isOpen, 
   onClose, 
   title, 
   children, 
   size = 'md' 
-}) => {
+}: ModalProps): ReactElement | null => {
   if (!isOpen) return null;
   
   const sizeClasses = {

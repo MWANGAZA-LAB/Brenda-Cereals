@@ -14,10 +14,11 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./",
-    "baseUrl": "./",
+    "rootDir": "../",
+    "baseUrl": "../",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@brenda-cereals/types": ["types/index"]
     }
   },
   "include": [
