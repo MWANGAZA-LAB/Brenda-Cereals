@@ -33,11 +33,9 @@ jobs:
         tags: |
           ghcr.io/${{ github.repository }}:latest
           ghcr.io/${{ github.repository }}:${{ github.sha }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type:gha
+        cache-to: type:gha,mode=max
       continue-on-error: true
-
-
 
   deploy-github-pages:
     runs-on: ubuntu-latest
@@ -69,10 +67,7 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./apps/web/out
-        force_orphan: true
       continue-on-error: true
-
-
 
   notify-deployment:
     runs-on: ubuntu-latest
