@@ -14,11 +14,21 @@ COPY packages/ui/package*.json ./packages/ui/
 COPY packages/utils/package*.json ./packages/utils/
 
 # Install root dependencies
-RUN npm ci --only=production
+RUN npm ci
 
 # Install web app dependencies (including @tailwindcss/postcss)
 WORKDIR /app/apps/web
-RUN npm ci --only=production
+RUN npm ci
+
+# Install package dependencies
+WORKDIR /app/packages/types
+RUN npm ci
+
+WORKDIR /app/packages/ui
+RUN npm ci
+
+WORKDIR /app/packages/utils
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -27,6 +37,9 @@ WORKDIR /app
 # Copy dependency files from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
+COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
 
 # Copy package files and source code
 COPY packages/ ./packages/
@@ -34,11 +47,15 @@ COPY apps/web/ ./apps/web/
 COPY package*.json ./
 COPY prisma/ ./prisma/
 
+# Install package dependencies
+WORKDIR /app
+RUN npm install
+
 # Generate Prisma client
 RUN npx prisma generate
 
 # Build shared packages first
-RUN npm run build:packages
+RUN echo "Building packages..." && ls -la packages/ui/node_modules/@types/ && npm run build:packages
 
 # Build the Next.js application
 WORKDIR /app/apps/web

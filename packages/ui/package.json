@@ -2,8 +2,8 @@
   "name": "@brenda-cereals/ui",
   "version": "1.0.0",
   "private": true,
-  "main": "index.tsx",
-  "types": "index.tsx",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
