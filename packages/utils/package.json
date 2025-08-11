@@ -8,6 +8,9 @@
     "build": "tsc",
     "dev": "tsc --watch"
   },
+  "dependencies": {
+    "@brenda-cereals/types": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.0.0"
   }

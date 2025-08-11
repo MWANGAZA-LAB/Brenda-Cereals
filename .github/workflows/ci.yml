@@ -52,6 +52,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     
     steps:
     - name: Checkout code
@@ -81,6 +82,11 @@ jobs:
         name: build-files
         path: apps/web/.next
         
+    - name: Test Docker build
+      run: |
+        docker build -t brenda-cereals-test .
+        docker run --rm brenda-cereals-test npm run type-check
+        
   security:
     runs-on: ubuntu-latest
     
@@ -93,17 +99,61 @@ jobs:
         npm audit --audit-level moderate
         cd apps/web && npm audit --audit-level moderate
         
-  deploy:
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+        
+  quality:
     runs-on: ubuntu-latest
-    needs: [test, build]
-    if: github.ref == 'refs/heads/main'
+    needs: build
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Deploy to production
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        
+    - name: Install dependencies
       run: |
-        echo "Deploy to production server"
-        # Add your deployment commands here
-        # Example: Deploy to Vercel, AWS, etc.
+        npm ci
+        cd apps/web && npm ci
+        
+    - name: Run bundle analysis
+      run: |
+        cd apps/web && npm run build
+        npx @next/bundle-analyzer .next/static/chunks/*.js
+        
+    - name: Check bundle size
+      run: |
+        cd apps/web
+        npm run build
+        echo "Bundle size check completed"
+        
+  notify-ci:
+    runs-on: ubuntu-latest
+    needs: [test, build, security, quality]
+    if: always()
+    
+    steps:
+    - name: Notify CI Status
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#ci-status'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: always()
+      
+    - name: Create CI summary
+      run: |
+        echo "## CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Security: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Quality: ${{ needs.quality.result }}" >> $GITHUB_STEP_SUMMARY

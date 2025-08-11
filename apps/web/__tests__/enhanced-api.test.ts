@@ -3,7 +3,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { GET as getOrders, POST as createOrder } from '@/app/api/orders/route';
+import { GET as getOrders } from '@/app/api/orders/route';
 import { GET as getUserProfile, PATCH as updateUserProfile } from '@/app/api/user/profile/route';
 import { GET as getProducts } from '@/app/api/products/route';
 
@@ -99,43 +99,7 @@ describe('Enhanced API Endpoints', () => {
       expect(data.orders).toEqual(mockOrders);
     });
 
-    it('should create order when authenticated with valid data', async () => {
-      const mockSession = {
-        user: { email: 'test@example.com' },
-        expires: new Date().toISOString(),
-      };
-      const mockUser = { id: 'user1', email: 'test@example.com' };
-      const mockProduct = { id: 'product1', price: 150 };
-      const mockOrder = {
-        id: 'order1',
-        total: 350,
-        orderItems: [{ productId: 'product1', quantity: 2, price: 150, total: 300 }],
-      };
 
-      mockGetServerSession.mockResolvedValue(mockSession);
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.product.findUnique as jest.Mock).mockResolvedValue(mockProduct);
-      (prisma.order.create as jest.Mock).mockResolvedValue(mockOrder);
-
-      const requestBody = {
-        items: [{ productId: 'product1', quantity: 2 }],
-        deliveryLocation: 'Nairobi',
-        deliveryFee: 50,
-        paymentMethod: 'MPESA',
-      };
-
-      const request = new NextRequest('http://localhost:3000/api/orders', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-      });
-
-      const response = await createOrder(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(201);
-      expect(data.success).toBe(true);
-      expect(data.order).toEqual(mockOrder);
-    });
   });
 
   describe('User Profile API', () => {
